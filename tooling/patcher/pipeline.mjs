@@ -266,13 +266,24 @@ function deriveReverseDnsScheme(clientId) {
   return `${REVERSE_DNS_SCHEME_PREFIX}${identifier.toLowerCase()}`;
 }
 
+/** Any Google reverse-DNS OAuth redirect scheme, wherever it appears in a config file. */
+const REVERSE_DNS_SCHEME_PATTERN = /com\.googleusercontent\.apps\.[0-9A-Za-z-]+/g;
+
+/**
+ * Point every Google reverse-DNS redirect scheme in a config file's text at
+ * `scheme`, leaving every other byte alone: upstream's other deep-link schemes
+ * (e.g. `readest-onedrive`) stay registered, and the file keeps upstream's
+ * formatting, so a work-tree diff against the tag shows only real changes.
+ */
+const repointReverseDnsSchemes = (text, scheme) => text.replace(REVERSE_DNS_SCHEME_PATTERN, scheme);
+
 /**
  * Bake the builder's Google client into the work tree: write the frontend env var
- * AND inject the client's reverse-DNS scheme into tauri.conf's deep-link config
- * (desktop + mobile), replacing whatever scheme the overlay shipped. This is THE
- * per-builder step — the scheme is derived from the client id, so each build
- * registers its OWN client's redirect. Must run before `next build` (writes the
- * NEXT_PUBLIC_* env it bakes in) and before `tauri build` (patches tauri.conf).
+ * AND repoint tauri.conf's Google deep-link scheme (desktop + mobile) at the
+ * client's reverse-DNS scheme. This is THE per-builder step — the scheme is derived
+ * from the client id, so each build registers its OWN client's redirect. Must run
+ * before `next build` (writes the NEXT_PUBLIC_* env it bakes in) and before
+ * `tauri build` (patches tauri.conf).
  */
 async function injectClientConfig(onLine) {
   const { clientId, isDefault } = await effectiveClientId();
@@ -287,14 +298,19 @@ async function injectClientConfig(onLine) {
 
     const scheme = deriveReverseDnsScheme(clientId);
     const confPath = join(APP_DIR, 'src-tauri', 'tauri.conf.json');
-    const conf = JSON.parse(await readFile(confPath, 'utf8'));
-    const deepLink = conf.plugins['deep-link'];
-    deepLink.desktop.schemes = ['readest', scheme];
-    deepLink.mobile = (deepLink.mobile ?? []).filter(
-      (entry) => !(entry.scheme ?? []).some((s) => s.startsWith(REVERSE_DNS_SCHEME_PREFIX)),
-    );
-    deepLink.mobile.push({ scheme: [scheme], appLink: false });
-    await writeFile(confPath, `${JSON.stringify(conf, null, 2)}\n`);
+    const conf = repointReverseDnsSchemes(await readFile(confPath, 'utf8'), scheme);
+    // Upstream ships Drive sign-in, so its tauri.conf registers a Google scheme on
+    // both platforms. If a release ever stops doing that, Drive sign-in could not
+    // return to the app — stop here for a developer rather than build it broken.
+    const deepLink = JSON.parse(conf).plugins['deep-link'];
+    const onDesktop = deepLink.desktop.schemes.includes(scheme);
+    const onMobile = deepLink.mobile.some((entry) => entry.scheme?.includes(scheme));
+    if (!onDesktop || !onMobile)
+      return fail(
+        onLine,
+        `tauri.conf.json has no Google OAuth deep-link scheme to repoint (desktop: ${onDesktop}, mobile: ${onMobile})`,
+      );
+    await writeFile(confPath, conf);
   } catch (err) {
     return fail(onLine, `inject client config: ${err.message}`);
   }
@@ -534,10 +550,9 @@ export async function buildAndroidApk(onLine, release) {
       APP_DIR, 'src-tauri', 'gen', 'android', 'app', 'src', 'main', 'AndroidManifest.xml',
     );
     const manifestXml = await readFile(manifestPath, 'utf8');
-    const wantScheme = deriveReverseDnsScheme(effectiveClient);
-    const haveScheme = manifestXml.match(/com\.googleusercontent\.apps\.[0-9A-Za-z-]+/)?.[0];
-    if (haveScheme && haveScheme.toLowerCase() !== wantScheme) {
-      await writeFile(manifestPath, manifestXml.split(haveScheme).join(wantScheme));
+    const repointed = repointReverseDnsSchemes(manifestXml, deriveReverseDnsScheme(effectiveClient));
+    if (repointed !== manifestXml) {
+      await writeFile(manifestPath, repointed);
       onLine("==> Android: repointed the manifest OAuth redirect scheme to this build's client");
     }
   }
@@ -645,6 +660,35 @@ export async function runCheck(ref, onLine) {
   return 1;
 }
 
+/** A Readest release tag such as `v0.12.8`; captures the bare version. */
+const RELEASE_TAG_PATTERN = /^v(\d+\.\d+\.\d+)$/;
+
+/**
+ * Make the built app report the release the builder picked. Upstream has tagged a
+ * release one commit BEFORE bumping `package.json` (v0.12.8's tag still says
+ * 0.12.6), and tauri takes the app version — About screen, exe metadata, Android
+ * versionName/versionCode — from that file. No-op for non-release refs or when the
+ * version already matches.
+ */
+async function alignAppVersionWithTag(ref, onLine) {
+  const tagVersion = ref.match(RELEASE_TAG_PATTERN)?.[1];
+  if (!tagVersion) return 0;
+  const packagePath = join(APP_DIR, 'package.json');
+  try {
+    const packageJson = await readFile(packagePath, 'utf8');
+    const { version } = JSON.parse(packageJson);
+    if (version === tagVersion) return 0;
+    await writeFile(
+      packagePath,
+      packageJson.replace(`"version": "${version}"`, `"version": "${tagVersion}"`),
+    );
+    onLine(`==> ${ref} is tagged on a tree still versioned ${version}; building as ${tagVersion}`);
+    return 0;
+  } catch (err) {
+    return fail(onLine, `align app version with ${ref}: ${err.message}`);
+  }
+}
+
 /** Full flow: clone (if needed) → overlay onto <ref> → build. `release` = optimized
  *  (smaller, slower) artifacts for distribution; default debug (faster). */
 export async function runUpdate(ref, onLine, release = false) {
@@ -652,6 +696,7 @@ export async function runUpdate(ref, onLine, release = false) {
   if (!(await captureGit(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`])).out)
     return fail(onLine, `version '${ref}' not found`);
   if (await overlayOnto(ref, onLine)) return 1;
+  if (await alignAppVersionWithTag(ref, onLine)) return 1;
   return buildInWork(onLine, release);
 }
 

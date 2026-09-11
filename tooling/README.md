@@ -73,19 +73,30 @@ vendoring → inject the Google client id + reverse-DNS scheme + app icon → `n
 → `tauri build` (Windows exe) → `tauri android build` (APK, if the Android toolchain
 is present).
 
-## Developer layer (editing the mod itself)
+## Developer layer (editing the mod / moving it to a new Readest release)
 
-The mod is developed in a full Readest fork at `../../readest-src` on branch
-`cloud-sync-mod` (one squashed commit on the base tag). After changing the mod
-there, **regenerate the overlay** so the patcher ships the update:
+Upstream keeps changing the files the mod touches, so a new Readest release usually
+needs a real merge ("Check" reports it). Do it in the patcher's own clone:
 
 ```
-git -C ../../readest-src diff "$(cat mod/base-tag.txt)" cloud-sync-mod > mod/mod.patch
+cd work/readest
+git checkout -f <new-tag> && git clean -fd
+git apply -3 ../../tooling/mod/mod.patch      # conflict markers land in the tree
+#   resolve, re-expressing the mod in upstream's current code
+pnpm install && (cd apps/readest-app && pnpm lint && pnpm test)
+git add -A apps/readest-app/src apps/readest-app/src-tauri/tauri.conf.json
+git diff --cached <new-tag> -- apps/readest-app/src apps/readest-app/src-tauri/tauri.conf.json \
+  > ../../tooling/mod/mod.patch
+printf '<new-tag>\n' > ../../tooling/mod/base-tag.txt
 ```
+
+Regenerate the patch **before** building: a build injects the Google client scheme,
+icons and Android files into the tree, and none of that belongs in the overlay. The
+mod's `tauri.conf.json` change is only the "Readest GMod" name + identifier.
 
 The `*.sh` scripts here (`build-mod.sh`, `update-to-version.sh`, `check-version.sh`)
-are optional developer/CLI helpers that operate on that `readest-src` fork directly;
-end users never need them — the browser patcher is self-contained.
+are legacy helpers for the retired `readest-src` fork; end users never need them —
+the browser patcher is self-contained.
 
 ## Cloud auto-build (GitHub Actions)
 

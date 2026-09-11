@@ -1,24 +1,5 @@
-diff --git a/apps/readest-app/public/locales/en/translation.json b/apps/readest-app/public/locales/en/translation.json
-index ff49efd5..f8c38b28 100644
---- a/apps/readest-app/public/locales/en/translation.json
-+++ b/apps/readest-app/public/locales/en/translation.json
-@@ -70,11 +70,13 @@
-   "Imported {{count}} annotations_other": "Imported {{count}} annotations",
-   "Recently read": "Recently read",
-   "Show recently read": "Show recently read",
-+  "Hidden until you open it again": "Hidden until you open it again",
-   "Your books will appear here": "Your books will appear here",
-   "{{count}} results_one": "{{count}} result",
-   "{{count}} results_other": "{{count}} results",
-   "{{count}} uploads failed: insufficient storage quota_one": "{{count}} upload failed: insufficient storage quota",
-   "{{count}} uploads failed: insufficient storage quota_other": "{{count}} uploads failed: insufficient storage quota",
-   "Library sync via {{count}} providers_one": "Library sync via {{count}} provider",
--  "Library sync via {{count}} providers_other": "Library sync via {{count}} providers"
-+  "Library sync via {{count}} providers_other": "Library sync via {{count}} providers",
-+  "Connected to {{provider}}": "Connected to {{provider}}"
- }
 diff --git a/apps/readest-app/src-tauri/tauri.conf.json b/apps/readest-app/src-tauri/tauri.conf.json
-index 05a9be21..3e2672c0 100644
+index c4f9a8a88..90d75bdc1 100644
 --- a/apps/readest-app/src-tauri/tauri.conf.json
 +++ b/apps/readest-app/src-tauri/tauri.conf.json
 @@ -1,8 +1,8 @@
@@ -32,316 +13,378 @@ index 05a9be21..3e2672c0 100644
    "version": "../package.json",
    "build": {
      "frontendDist": "../out",
-@@ -13,7 +13,10 @@
-   "app": {
-     "windows": [],
-     "security": {
--      "capabilities": ["default", "desktop-capability"],
-+      "capabilities": [
-+        "default",
-+        "desktop-capability"
-+      ],
-       "csp": {
-         "default-src": "'self' 'unsafe-inline' blob: data: customprotocol: asset: http://asset.localhost http://rangefile.localhost ipc: http://ipc.localhost",
-         "connect-src": "'self' blob: data: asset: http://asset.localhost http://rangefile.localhost ipc: http://ipc.localhost http://*:* https://*:* https://*.sentry.io https://*.posthog.com https://*.deepl.com https://*.wikipedia.org https://*.wiktionary.org https://*.supabase.co https://*.readest.com wss://speech.platform.bing.com https://*.cloudflarestorage.com https://translate.googleapis.com https://translate.toil.cc https://*.microsofttranslator.com https://edge.microsoft.com https://*.googleusercontent.com https://graph.microsoft.com https://login.microsoftonline.com",
-@@ -79,49 +82,63 @@
-     "fileAssociations": [
-       {
-         "name": "epub",
--        "ext": ["epub"],
-+        "ext": [
-+          "epub"
-+        ],
-         "description": "EPUB file",
-         "mimeType": "application/epub+zip",
-         "role": "Viewer"
-       },
-       {
-         "name": "mobi",
--        "ext": ["mobi"],
-+        "ext": [
-+          "mobi"
-+        ],
-         "description": "MOBI file",
-         "mimeType": "application/x-mobipocket-ebook",
-         "role": "Viewer"
-       },
-       {
-         "name": "azw",
--        "ext": ["azw"],
-+        "ext": [
-+          "azw"
-+        ],
-         "description": "AZW file",
-         "mimeType": "application/vnd.amazon.ebook",
-         "role": "Viewer"
-       },
-       {
-         "name": "azw3",
--        "ext": ["azw3"],
-+        "ext": [
-+          "azw3"
-+        ],
-         "description": "AZW3 file",
-         "mimeType": "application/vnd.amazon.mobi8-ebook",
-         "role": "Viewer"
-       },
-       {
-         "name": "fb2",
--        "ext": ["fb2"],
-+        "ext": [
-+          "fb2"
-+        ],
-         "description": "FB2 file",
-         "mimeType": "application/x-fictionbook+xml",
-         "role": "Viewer"
-       },
-       {
-         "name": "cbz",
--        "ext": ["cbz"],
-+        "ext": [
-+          "cbz"
-+        ],
-         "description": "CBZ file",
-         "mimeType": "application/vnd.comicbook+zip",
-         "role": "Viewer"
-       },
-       {
-         "name": "pdf",
--        "ext": ["pdf"],
-+        "ext": [
-+          "pdf"
-+        ],
-         "description": "PDF file",
-         "mimeType": "application/pdf",
-         "role": "Viewer"
-@@ -161,28 +178,35 @@
-     "deep-link": {
-       "mobile": [
-         {
--          "scheme": ["https"],
-+          "scheme": [
-+            "https"
-+          ],
-           "host": "web.readest.com",
-           "appLink": true
-         },
-         {
--          "scheme": ["readest"],
-+          "scheme": [
-+            "readest"
-+          ],
-           "appLink": false
-         },
-         {
--          "scheme": ["readest-onedrive"],
-+          "scheme": [
-+            "readest-onedrive"
-+          ],
-           "appLink": false
-         },
-         {
--          "scheme": ["com.googleusercontent.apps.209390247301-ctpmep68ppfa56r1b8tr35e4qi4p60kq"],
-+          "scheme": [
-+            "com.googleusercontent.apps.433627266031-77n0mfpr6e88vv80luhiafp9h07kh8lb"
-+          ],
-           "appLink": false
-         }
-       ],
-       "desktop": {
-         "schemes": [
-           "readest",
--          "readest-onedrive",
--          "com.googleusercontent.apps.209390247301-ctpmep68ppfa56r1b8tr35e4qi4p60kq"
-+          "com.googleusercontent.apps.433627266031-77n0mfpr6e88vv80luhiafp9h07kh8lb"
-         ]
-       }
-     },
+diff --git a/apps/readest-app/src/__tests__/app/library/library-sign-in-gate.test.ts b/apps/readest-app/src/__tests__/app/library/library-sign-in-gate.test.ts
+new file mode 100644
+index 000000000..178b7c484
+--- /dev/null
++++ b/apps/readest-app/src/__tests__/app/library/library-sign-in-gate.test.ts
+@@ -0,0 +1,22 @@
++import { describe, expect, it } from 'vitest';
++import type { SystemSettings } from '@/types/settings';
++import { requiresSignInToSyncLibrary } from '@/app/library/utils/libraryUtils';
++
++const NO_CLOUD = {} as SystemSettings;
++const GOOGLE_DRIVE_CONNECTED = { googleDrive: { enabled: true } } as SystemSettings;
++
++describe('requiresSignInToSyncLibrary', () => {
++  it('never diverts a signed-in user to the login screen', () => {
++    expect(requiresSignInToSyncLibrary(NO_CLOUD, true)).toBe(false);
++  });
++
++  it('sends a signed-out user with no cloud of their own to sign in', () => {
++    expect(requiresSignInToSyncLibrary(NO_CLOUD, false)).toBe(true);
++  });
++
++  // Also guards the paywall flip: with the premium gate on, a free user's Drive
++  // backend is paused and this would demand a sign-in instead of syncing.
++  it('lets a signed-out free user sync through their own Google Drive', () => {
++    expect(requiresSignInToSyncLibrary(GOOGLE_DRIVE_CONNECTED, false)).toBe(false);
++  });
++});
+diff --git a/apps/readest-app/src/__tests__/app/library/recent-shelf-hide.test.tsx b/apps/readest-app/src/__tests__/app/library/recent-shelf-hide.test.tsx
+new file mode 100644
+index 000000000..8e8d603a8
+--- /dev/null
++++ b/apps/readest-app/src/__tests__/app/library/recent-shelf-hide.test.tsx
+@@ -0,0 +1,117 @@
++import { afterEach, describe, expect, it, vi } from 'vitest';
++import { cleanup, fireEvent, render, screen } from '@testing-library/react';
++
++vi.mock('@/hooks/useTranslation', () => ({
++  useTranslation: () => (key: string) => key,
++}));
++
++// The keydown hook pulls in EnvContext + device store, which these tests don't
++// exercise; stub it to a no-op ref.
++vi.mock('@/hooks/useKeyDownActions', () => ({
++  useKeyDownActions: () => ({ current: null }),
++}));
++
++import SelectModeActions from '@/app/library/components/SelectModeActions';
++import { canHideFromRecentShelf, selectRecentShelfBooks } from '@/app/library/utils/libraryUtils';
++import { Book } from '@/types/book';
++
++afterEach(cleanup);
++
++const SHELF_SIZE = 10;
++const HIDDEN_AT = 5_000;
++
++/** A book that is being read (has progress), last updated at `updatedAt`. */
++const readingBook = (hash: string, updatedAt: number): Book =>
++  ({
++    hash,
++    format: 'EPUB',
++    title: hash,
++    author: '',
++    createdAt: 0,
++    updatedAt,
++    progress: [1, 100],
++  }) as Book;
++
++const hashesOf = (books: Book[]) => books.map((book) => book.hash);
++
++describe('selectRecentShelfBooks with hidden books', () => {
++  it('leaves a hidden book off the shelf until it is read again', () => {
++    const hidden = readingBook('hidden', HIDDEN_AT - 1);
++    const visible = readingBook('visible', HIDDEN_AT - 2);
++
++    const shelf = selectRecentShelfBooks([hidden, visible], SHELF_SIZE, { hidden: HIDDEN_AT });
++
++    expect(hashesOf(shelf)).toEqual(['visible']);
++  });
++
++  it('brings a hidden book back once its updatedAt moves past the hide time', () => {
++    const readAgain = readingBook('read-again', HIDDEN_AT + 1);
++
++    const shelf = selectRecentShelfBooks([readAgain], SHELF_SIZE, { 'read-again': HIDDEN_AT });
++
++    expect(hashesOf(shelf)).toEqual(['read-again']);
++  });
++});
++
++describe('canHideFromRecentShelf', () => {
++  const shelf = [readingBook('a', 1), readingBook('b', 2)];
++
++  it('is false when nothing is selected', () => {
++    expect(canHideFromRecentShelf([], shelf)).toBe(false);
++  });
++
++  it('is true when every selected book is on the shelf', () => {
++    expect(canHideFromRecentShelf(['a', 'b'], shelf)).toBe(true);
++  });
++
++  it('is false when any selected item is not on the shelf, so a hide never skips part of it', () => {
++    expect(canHideFromRecentShelf(['a', 'grid-only'], shelf)).toBe(false);
++  });
++});
++
++describe('SelectModeActions "Hide" action', () => {
++  const noop = () => {};
++  const baseProps = {
++    selectedBooks: ['0123456789abcdef0123456789abcdef'],
++    safeAreaBottom: 0,
++    onOpen: noop,
++    onGroup: noop,
++    onDetails: noop,
++    onStatus: noop,
++    onDownload: noop,
++    onSend: noop,
++    onDelete: noop,
++    onCancel: noop,
++  };
++
++  const hideButton = () => screen.getByText('Hide').closest('button') as HTMLButtonElement;
++
++  it('is absent unless the recently-read shelf is showing', () => {
++    render(<SelectModeActions {...baseProps} />);
++
++    expect(screen.queryByText('Hide')).toBeNull();
++  });
++
++  it('is disabled when the selection cannot be hidden from the shelf', () => {
++    render(<SelectModeActions {...baseProps} hideFromRecentEnabled canHideFromRecent={false} />);
++
++    expect(hideButton().className).toContain('btn-disabled');
++  });
++
++  it('hides the selection when enabled and clicked', () => {
++    const onHideFromRecent = vi.fn();
++    render(
++      <SelectModeActions
++        {...baseProps}
++        hideFromRecentEnabled
++        canHideFromRecent
++        onHideFromRecent={onHideFromRecent}
++      />,
++    );
++
++    expect(hideButton().className).not.toContain('btn-disabled');
++    fireEvent.click(hideButton());
++
++    expect(onHideFromRecent).toHaveBeenCalledOnce();
++  });
++});
+diff --git a/apps/readest-app/src/__tests__/components/settings/cloudSync.test.ts b/apps/readest-app/src/__tests__/components/settings/cloudSync.test.ts
+index e937f3708..76eebd1ab 100644
+--- a/apps/readest-app/src/__tests__/components/settings/cloudSync.test.ts
++++ b/apps/readest-app/src/__tests__/components/settings/cloudSync.test.ts
+@@ -31,12 +31,13 @@ describe('isCloudSyncInPlan', () => {
+ });
+ 
+ describe('isCloudSyncAllowed (premium paywall)', () => {
+-  test('third-party cloud sync requires a paid plan', () => {
+-    expect(CLOUD_SYNC_REQUIRES_PREMIUM).toBe(true);
+-    expect(isCloudSyncAllowed('free', false)).toBe(false);
++  // Readest GMod: the paywall switch is off, so every plan may use its own cloud.
++  test('third-party cloud sync is open to every plan', () => {
++    expect(CLOUD_SYNC_REQUIRES_PREMIUM).toBe(false);
++    expect(isCloudSyncAllowed('free', false)).toBe(true);
+     expect(isCloudSyncAllowed('plus', false)).toBe(true);
+     expect(isCloudSyncAllowed('pro', false)).toBe(true);
+-    expect(isCloudSyncAllowed('purchase', false)).toBe(false);
++    expect(isCloudSyncAllowed('purchase', false)).toBe(true);
+   });
+ });
+ 
+@@ -288,8 +289,4 @@ describe('isCloudSyncAllowed — customization unlock', () => {
+   test('entitles a grandfathered storage buyer, who carries the flag', () => {
+     expect(isCloudSyncAllowed('purchase', true)).toBe(true);
+   });
+-
+-  test('does not entitle a storage-only buyer after the grace period', () => {
+-    expect(isCloudSyncAllowed('purchase', false)).toBe(false);
+-  });
+ });
+diff --git a/apps/readest-app/src/__tests__/services/sync/file/runLibrarySync.test.ts b/apps/readest-app/src/__tests__/services/sync/file/runLibrarySync.test.ts
+index 4a4cb8310..e0619d446 100644
+--- a/apps/readest-app/src/__tests__/services/sync/file/runLibrarySync.test.ts
++++ b/apps/readest-app/src/__tests__/services/sync/file/runLibrarySync.test.ts
+@@ -310,9 +310,10 @@ describe('getReadyFileSyncBackends', () => {
+     expect(getReadyFileSyncBackends(settings)).toEqual(['webdav', 'gdrive']);
+   });
+ 
+-  test('excludes everything when the plan gate pauses third-party sync', () => {
++  // Readest GMod: the paywall switch is off, so a free plan never pauses its own cloud.
++  test('keeps third-party sync on a free plan', () => {
+     setCachedUserPlan('free');
+-    expect(getReadyFileSyncBackends(settings)).toEqual([]);
++    expect(getReadyFileSyncBackends(settings)).toEqual(['webdav', 'gdrive']);
+   });
+ 
+   test('rules icloud out off Apple platforms (canBackendRun false)', () => {
 diff --git a/apps/readest-app/src/app/library/components/Bookshelf.tsx b/apps/readest-app/src/app/library/components/Bookshelf.tsx
-index 495ad0ba..6481dd1a 100644
+index b37bf30aa..d9dc9ec30 100644
 --- a/apps/readest-app/src/app/library/components/Bookshelf.tsx
 +++ b/apps/readest-app/src/app/library/components/Bookshelf.tsx
-@@ -712,8 +712,13 @@ const Bookshelf: React.FC<BookshelfProps> = ({
+@@ -25,6 +25,7 @@ import { useEnv } from '@/context/EnvContext';
+ import { useThemeStore } from '@/store/themeStore';
+ import { useAutoFocus } from '@/hooks/useAutoFocus';
+ import { useSettingsStore } from '@/store/settingsStore';
++import { saveSysSettings } from '@/helpers/settings';
+ import { isAbsBookOrphaned, useABSServerStore } from '@/store/absServerStore';
+ import { useLibraryStore } from '@/store/libraryStore';
+ import { selectActiveBookDownloadProgress, useTransferStore } from '@/store/transferStore';
+@@ -48,6 +49,7 @@ import {
+   resolveEffectiveSecondarySort,
+   resolveCurrentShelfBooks,
+   selectDownloadableBooks,
++  canHideFromRecentShelf,
+   selectRecentShelfBooks,
+   withReadingStatus,
+   withTimeRemainingLast,
+@@ -129,6 +131,9 @@ type BookshelfListContext = {
+ 
+ const DEFAULT_FOOTER_HEIGHT = 34;
+ 
++/** Lifetime of the confirmation toast after hiding books from the recent shelf (ms). */
++const RECENT_SHELF_HIDE_TOAST_MS = 2000;
++
+ const BookshelfFooter = ({ context }: { context?: BookshelfListContext }) => (
+   <div style={{ height: context?.footerHeight ?? DEFAULT_FOOTER_HEIGHT }} />
+ );
+@@ -845,8 +850,13 @@ const Bookshelf: React.FC<BookshelfProps> = ({
    // Flat recency slice of the whole library, independent of the main shelf's
-   // sort/grouping. Built from `libraryBooks` (not the sorted/filtered items).
+   // sort/grouping. Built from `visibleBooks` (not the sorted/filtered items).
    const recentBooks = useMemo(
--    () => selectRecentShelfBooks(libraryBooks, RECENT_SHELF_BOOK_COUNT),
--    [libraryBooks],
+-    () => selectRecentShelfBooks(visibleBooks, RECENT_SHELF_BOOK_COUNT),
+-    [visibleBooks],
 +    () =>
 +      selectRecentShelfBooks(
-+        libraryBooks,
++        visibleBooks,
 +        RECENT_SHELF_BOOK_COUNT,
 +        settings.libraryRecentShelfHiddenAt,
 +      ),
-+    [libraryBooks, settings.libraryRecentShelfHiddenAt],
++    [visibleBooks, settings.libraryRecentShelfHiddenAt],
    );
  
-   // A top-level quick-resume strip: hidden while searching, inside a group,
-diff --git a/apps/readest-app/src/app/library/components/RecentShelf.tsx b/apps/readest-app/src/app/library/components/RecentShelf.tsx
-index fcedf01f..8a975149 100644
---- a/apps/readest-app/src/app/library/components/RecentShelf.tsx
-+++ b/apps/readest-app/src/app/library/components/RecentShelf.tsx
-@@ -3,8 +3,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
- import { MdChevronLeft, MdChevronRight } from 'react-icons/md';
- import { Book } from '@/types/book';
- import { LibraryCoverFitType } from '@/types/settings';
-+import { useEnv } from '@/context/EnvContext';
-+import { useSettingsStore } from '@/store/settingsStore';
- import { useTranslation } from '@/hooks/useTranslation';
- import { useLongPress } from '@/hooks/useLongPress';
-+import { saveSysSettings } from '@/helpers/settings';
-+import { eventDispatcher } from '@/utils/event';
- import BookItem from './BookItem';
+   // Cover transfer overlay progress for every book on screen, from both
+@@ -867,6 +877,21 @@ const Bookshelf: React.FC<BookshelfProps> = ({
+   const showRecentShelf =
+     settings.libraryRecentShelfEnabled && !queryTerm && !groupId && recentBooks.length > 0;
  
- /**
-@@ -13,6 +17,9 @@ import BookItem from './BookItem';
-  */
- export const RECENT_SHELF_BOOK_COUNT = 12;
- 
-+/** Confirmation toast lifetime after a book is hidden (ms). */
-+const HIDE_TOAST_TIMEOUT_MS = 2000;
++  // Select-mode "Hide": drops the selected books off the recently-read shelf
++  // until each is read again (see `selectRecentShelfBooks`' `hiddenAt`).
++  const hideSelectedFromRecentShelf = async () => {
++    const hiddenAt = { ...settings.libraryRecentShelfHiddenAt };
++    const now = Date.now();
++    for (const hash of getSelectedBooks()) hiddenAt[hash] = now;
++    handleSetSelectMode(false);
++    await saveSysSettings(envConfig, 'libraryRecentShelfHiddenAt', hiddenAt);
++    eventDispatcher.dispatch('toast', {
++      type: 'info',
++      message: _('Hidden from Recently read until opened again'),
++      timeout: RECENT_SHELF_HIDE_TOAST_MS,
++    });
++  };
 +
- interface RecentShelfProps {
-   books: Book[];
-   coverFit: LibraryCoverFitType;
-@@ -44,12 +51,17 @@ type RecentSlideProps = Pick<
-   | 'handleBookDownload'
-   | 'showBookDetailsModal'
-   | 'showTimeRemaining'
--> & { book: Book };
-+> & {
-+  book: Book;
-+  /** Hide the book from the shelf until it is read again. */
-+  onRequestHide: (book: Book) => void;
-+};
- 
- const RecentSlide: React.FC<RecentSlideProps> = ({
-   book,
-   coverFit,
-   onOpenBook,
-+  onRequestHide,
-   handleBookUpload,
-   handleBookDownload,
-   showBookDetailsModal,
-@@ -57,17 +69,26 @@ const RecentSlide: React.FC<RecentSlideProps> = ({
- }) => {
-   // Pointer-based tap, exactly like the grid (`BookItem` stops click
-   // propagation). A swipe-to-scroll moves past useLongPress's moveThreshold and
--  // cancels the tap, so horizontal scrolling never opens a book.
--  const { pressing, handlers } = useLongPress({ onTap: () => onOpenBook(book) }, [
--    book,
--    onOpenBook,
--  ]);
-+  // cancels the tap, so horizontal scrolling never opens a book. Press-and-hold
-+  // (or right-click) hides the book from the shelf until it is read again.
-+  const { pressing, handlers } = useLongPress(
-+    {
-+      onTap: () => onOpenBook(book),
-+      onLongPress: () => onRequestHide(book),
-+      onContextMenu: () => onRequestHide(book),
-+    },
-+    [book, onOpenBook, onRequestHide],
-+  );
- 
-   const handleKeyDown = (e: React.KeyboardEvent) => {
-     if (e.key === 'Enter' || e.key === ' ') {
-       e.preventDefault();
-       onOpenBook(book);
-     }
-+    if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
-+      e.preventDefault();
-+      onRequestHide(book);
-+    }
-   };
- 
-   return (
-@@ -125,6 +146,42 @@ const RecentShelf: React.FC<RecentShelfProps> = ({
-   showTimeRemaining,
- }) => {
-   const _ = useTranslation();
-+  const { envConfig } = useEnv();
-+  const { settings } = useSettingsStore();
-+
-+  // One hide per press: a hide disarms further hides until the pointer lifts, so
-+  // when the row reflows and the next cover slides under a still-held finger it
-+  // is not hidden in turn. Re-armed on pointer up/cancel (see the scroller).
-+  const canHideRef = useRef(true);
-+  const rearmHide = useCallback(() => {
-+    canHideRef.current = true;
-+  }, []);
-+
-+  const hideBook = useCallback(
-+    async (book: Book) => {
-+      const hiddenAt = {
-+        ...settings.libraryRecentShelfHiddenAt,
-+        [book.hash]: Date.now(),
-+      };
-+      await saveSysSettings(envConfig, 'libraryRecentShelfHiddenAt', hiddenAt);
-+    },
-+    [envConfig, settings.libraryRecentShelfHiddenAt],
-+  );
-+
-+  const requestHide = useCallback(
-+    async (book: Book) => {
-+      if (!canHideRef.current) return; // already hid one this press — wait for a lift
-+      canHideRef.current = false;
-+      await hideBook(book);
-+      eventDispatcher.dispatch('toast', {
-+        type: 'info',
-+        message: _('Hidden until you open it again'),
-+        timeout: HIDE_TOAST_TIMEOUT_MS,
-+      });
-+    },
-+    [_, hideBook],
-+  );
-+
-   // `--rs-cols` mirrors the grid's column count: the responsive ladder
-   // (BOOKSHELF_GRID_CLASSES) when auto, or the fixed setting otherwise.
-   // `--rs-gap` mirrors the grid's `gap-x-4 sm:gap-x-0` so the width formula
-@@ -189,6 +246,8 @@ const RecentShelf: React.FC<RecentShelfProps> = ({
-         <div
-           ref={scrollerRef}
-           onScroll={updateArrows}
-+          onPointerUp={rearmHide}
-+          onPointerCancel={rearmHide}
-           className='no-scrollbar overflow-x-auto overflow-y-hidden overscroll-x-contain px-4 sm:px-2'
-         >
-           <div
-@@ -201,6 +260,7 @@ const RecentShelf: React.FC<RecentShelfProps> = ({
-                 book={book}
-                 coverFit={coverFit}
-                 onOpenBook={onOpenBook}
-+                onRequestHide={requestHide}
-                 handleBookUpload={handleBookUpload}
-                 handleBookDownload={handleBookDownload}
-                 showBookDetailsModal={showBookDetailsModal}
+   const recentShelfHeader = useMemo(
+     () =>
+       showRecentShelf ? (
+@@ -1110,6 +1135,9 @@ const Bookshelf: React.FC<BookshelfProps> = ({
+           sendNearbyEnabled={isTauriAppPlatform() && isLocalSendEnabled()}
+           onSendNearby={sendSelectedNearby}
+           canDownload={downloadableBooks.length > 0}
++          hideFromRecentEnabled={showRecentShelf}
++          canHideFromRecent={canHideFromRecentShelf(selectedBooks, recentBooks)}
++          onHideFromRecent={hideSelectedFromRecentShelf}
+           onOpen={openSelectedBooks}
+           onGroup={groupSelectedBooks}
+           onDetails={openBookDetails}
+diff --git a/apps/readest-app/src/app/library/components/SelectModeActions.tsx b/apps/readest-app/src/app/library/components/SelectModeActions.tsx
+index 2785bebc3..c3ec1c9b4 100644
+--- a/apps/readest-app/src/app/library/components/SelectModeActions.tsx
++++ b/apps/readest-app/src/app/library/components/SelectModeActions.tsx
+@@ -7,6 +7,7 @@ import {
+   MdInfoOutline,
+   MdCheckCircleOutline,
+   MdOutlineCloudDownload,
++  MdVisibilityOff,
+   MdWifiTethering,
+ } from 'react-icons/md';
+ import { IoShareSocialOutline } from 'react-icons/io5';
+@@ -33,6 +34,12 @@ interface SelectModeActionsProps {
+   onStatus: () => void;
+   // Queues every cloud-only book in the selection, groups included (#5244).
+   onDownload: () => void;
++  // Hidden unless the recently-read shelf is showing. Disabled unless every
++  // selected book is on that shelf. Hides the selection from the shelf until
++  // each book is read again.
++  hideFromRecentEnabled?: boolean;
++  canHideFromRecent?: boolean;
++  onHideFromRecent?: () => void;
+   // The macOS / iPad share popover is anchored to the selected book's
+   // cover (located via its data-book-hash attribute), not to this
+   // button — the user's visual focus is on the cover they just tapped.
+@@ -61,6 +68,9 @@ const SelectModeActions: React.FC<SelectModeActionsProps> = ({
+   onDetails,
+   onStatus,
+   onDownload,
++  hideFromRecentEnabled = false,
++  canHideFromRecent = false,
++  onHideFromRecent,
+   onSend,
+   sendNearbyEnabled = false,
+   onSendNearby,
+@@ -163,6 +173,18 @@ const SelectModeActions: React.FC<SelectModeActionsProps> = ({
+           <MdOutlineCloudDownload />
+           <div>{_('Download')}</div>
+         </button>
++        {hideFromRecentEnabled && (
++          <button
++            onClick={onHideFromRecent}
++            className={clsx(
++              'flex flex-col items-center justify-center gap-1',
++              !canHideFromRecent && 'btn-disabled opacity-50',
++            )}
++          >
++            <MdVisibilityOff />
++            <div>{_('Hide')}</div>
++          </button>
++        )}
+         {sendEnabled && (
+           <button
+             onClick={onSend}
 diff --git a/apps/readest-app/src/app/library/components/SettingsMenu.tsx b/apps/readest-app/src/app/library/components/SettingsMenu.tsx
-index b5f452c5..d63f0357 100644
+index 6a04667b3..3a14a3336 100644
 --- a/apps/readest-app/src/app/library/components/SettingsMenu.tsx
 +++ b/apps/readest-app/src/app/library/components/SettingsMenu.tsx
 @@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
  import { PiUserCircle, PiUserCircleCheck, PiGear } from 'react-icons/pi';
  import { PiSun, PiMoon } from 'react-icons/pi';
  import { TbSunMoon } from 'react-icons/tb';
--import { MdCloudSync, MdSync, MdSyncProblem } from 'react-icons/md';
-+import { MdCloudDone, MdCloudSync, MdSync, MdSyncProblem } from 'react-icons/md';
+-import { MdCloudSync, MdSync, MdSyncProblem, MdOutlineSensors } from 'react-icons/md';
++import { MdCloudDone, MdCloudSync, MdSync, MdSyncProblem, MdOutlineSensors } from 'react-icons/md';
  
  import { isTauriAppPlatform, isWebAppPlatform } from '@/services/environment';
  import { DOWNLOAD_READEST_URL } from '@/services/constants';
-@@ -316,6 +316,12 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
-       ? _('Synced {{time}}', { time: dayjs(lastSyncTime).fromNow() })
-       : _('Never synced');
+@@ -14,7 +14,10 @@ import { useAuth } from '@/context/AuthContext';
+ import { useEnv } from '@/context/EnvContext';
+ import { useThemeStore } from '@/store/themeStore';
+ import { useQuotaStats } from '@/hooks/useQuotaStats';
+-import { isReadestCloudEnabled } from '@/services/sync/cloudSyncProvider';
++import {
++  cloudProvidersDisplayName,
++  isReadestCloudEnabled,
++} from '@/services/sync/cloudSyncProvider';
+ import { useLibraryStore } from '@/store/libraryStore';
+ import { useSettingsStore } from '@/store/settingsStore';
+ import { useTranslation } from '@/hooks/useTranslation';
+@@ -284,6 +287,14 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
+   // object with esprima, which chokes on TypeScript's `!` non-null assertion.
+   const firstProviderName = syncStatus.providers[0]?.name ?? '';
  
-+  // A third-party cloud is connected exactly when a file-sync backend is ready
-+  // to sync; this un-gates the "signed-in"-style account block (transfers + sync
-+  // row) for a cloud-only user who has no Readest account.
-+  const isCloudConnected = backends.length > 0;
-+  const connectedCloudName = cloudProvidersDisplayName(backends);
++  // A third-party cloud that can sync right now stands in for a Readest account:
++  // it un-gates the "signed-in"-style account block (transfers + sync row) for a
++  // cloud-only user who has no Readest account.
++  const isCloudConnected = fileBackendCount > 0;
++  const connectedCloudName = cloudProvidersDisplayName(
++    syncStatus.providers.map((p) => p.kind).filter((kind) => kind !== 'readest'),
++  );
 +
    return (
      <Menu
        className={clsx(
-@@ -324,20 +330,26 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
+@@ -292,20 +303,26 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
        )}
        onCancel={() => setIsDropdownOpen?.(false)}
      >
@@ -358,7 +401,7 @@ index b5f452c5..d63f0357 100644
 +                : _('Logged in')
 +              : _('Connected to {{provider}}', { provider: connectedCloudName })
            }
-           labelClass='!max-w-40'
+           labelClass='max-w-40! truncate text-nowrap!'
 -          aria-label={_('View account details and quota')}
 +          aria-label={user ? _('View account details and quota') : undefined}
            Icon={
@@ -376,16 +419,7 @@ index b5f452c5..d63f0357 100644
              )
            }
          >
-@@ -359,7 +371,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
-             />
-             <MenuItem
-               label={syncRowLabel}
--              Icon={user ? MdSync : MdSyncProblem}
-+              Icon={user || isCloudConnected ? MdSync : MdSyncProblem}
-               labelClass='ps-2 pe-1 !mx-0'
-               iconClassName={(user && isSyncing) || providerSyncing ? 'animate-reverse-spin' : ''}
-               onClick={handleSyncLibrary}
-@@ -386,7 +398,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
+@@ -360,7 +377,7 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({ onPullLibrary, setIsDropdow
                  <Quota quotas={quotas} labelClassName='h-10 pl-3 pr-2' />
                </button>
              ) : null}
@@ -395,10 +429,10 @@ index b5f452c5..d63f0357 100644
          </MenuItem>
        ) : (
 diff --git a/apps/readest-app/src/app/library/page.tsx b/apps/readest-app/src/app/library/page.tsx
-index e74e07b0..136611e0 100644
+index bda5476f2..cb1c5d4aa 100644
 --- a/apps/readest-app/src/app/library/page.tsx
 +++ b/apps/readest-app/src/app/library/page.tsx
-@@ -93,6 +93,7 @@ import {
+@@ -108,6 +108,7 @@ import {
    ensureLibraryGroupByType,
    findGroupById,
    getBreadcrumbs,
@@ -406,7 +440,7 @@ index e74e07b0..136611e0 100644
  } from './utils/libraryUtils';
  import Spinner from '@/components/Spinner';
  import LibraryHeader from './components/LibraryHeader';
-@@ -309,10 +310,14 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
+@@ -393,10 +394,14 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
    useInboxDrainer();
    const { isDragging } = useDragDropImport();
  
@@ -422,7 +456,7 @@ index e74e07b0..136611e0 100644
          navigateToLogin(router);
          return;
        }
-@@ -320,7 +325,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
+@@ -404,7 +409,7 @@ const LibraryPageContent = ({ searchParams }: { searchParams: ReadonlyURLSearchP
        checkOPDSSubscriptions(true);
      },
      async () => {
@@ -432,7 +466,7 @@ index e74e07b0..136611e0 100644
          return;
        }
 diff --git a/apps/readest-app/src/app/library/utils/libraryUtils.ts b/apps/readest-app/src/app/library/utils/libraryUtils.ts
-index e36552aa..f1bc26ae 100644
+index c070d121b..f035fa79b 100644
 --- a/apps/readest-app/src/app/library/utils/libraryUtils.ts
 +++ b/apps/readest-app/src/app/library/utils/libraryUtils.ts
 @@ -3,7 +3,9 @@ import {
@@ -442,11 +476,11 @@ index e36552aa..f1bc26ae 100644
 +  type SystemSettings,
  } from '@/types/settings';
 +import { getActiveFileSyncBackends } from '@/services/sync/cloudSyncProvider';
- import { formatAuthors, formatTitle, isCurrentlyReadingBook } from '@/utils/book';
- import { md5Fingerprint } from '@/utils/md5';
- import { SIZE_PER_LOC, SIZE_PER_TIME_UNIT } from '@/services/constants';
-@@ -341,6 +343,15 @@ export const createBookSorter =
-     return compareBookByKey(a, b, secondarySortBy, uiLanguage);
+ import {
+   formatAuthors,
+   formatTitle,
+@@ -413,6 +415,15 @@ export const createBookSorter =
+     return compareBookByKey(a, b, secondarySortBy, uiLanguage) * (secondaryAscending ? 1 : -1);
    };
  
 +/**
@@ -461,7 +495,7 @@ index e36552aa..f1bc26ae 100644
  /**
   * Pick the books for the recently-read shelf: most-recently-read first, capped
   * at `count`. Only currently-reading books qualify (see `isCurrentlyReadingBook`):
-@@ -349,15 +360,36 @@ export const createBookSorter =
+@@ -421,15 +432,46 @@ export const createBookSorter =
   * existing sort convention. NB: `updatedAt` is last-modified (also bumped by
   * status/metadata edits and sync), not strictly last-read. Independent of the
   * main shelf's sort/grouping — always a flat, recency slice.
@@ -484,6 +518,16 @@ index e36552aa..f1bc26ae 100644
  };
  
 +/**
++ * Whether the select-mode "Hide" action applies: something is selected and every
++ * selected id is a book on the recently-read shelf. All-or-nothing, so the
++ * action never silently skips part of a selection made in the main grid.
++ */
++export const canHideFromRecentShelf = (selectedIds: string[], shelfBooks: Book[]): boolean => {
++  const shelfHashes = new Set(shelfBooks.map((book) => book.hash));
++  return selectedIds.length > 0 && selectedIds.every((id) => shelfHashes.has(id));
++};
++
++/**
 + * Whether a library refresh can only sync by signing into a Readest account —
 + * i.e. whether a refresh surface should show the login screen instead of
 + * syncing. True only when there is no account AND no third-party file backend:
@@ -501,23 +545,23 @@ index e36552aa..f1bc26ae 100644
   * Build a `groupName -> max(book.updatedAt)` map for all groups touched by
   * the given books. Each book bumps both its direct group and every ancestor
 diff --git a/apps/readest-app/src/services/constants.ts b/apps/readest-app/src/services/constants.ts
-index 1d5bade4..da4526d8 100644
+index aa73b71dd..c6e01fe26 100644
 --- a/apps/readest-app/src/services/constants.ts
 +++ b/apps/readest-app/src/services/constants.ts
-@@ -179,6 +179,7 @@ export const DEFAULT_SYSTEM_SETTINGS: Partial<SystemSettings> = {
-   libraryAutoColumns: true,
-   libraryColumns: 6,
+@@ -224,6 +224,7 @@ export const DEFAULT_SYSTEM_SETTINGS: Partial<SystemSettings> = {
+   librarySkeuomorphicCovers: false,
+   libraryHideCovers: false,
    libraryRecentShelfEnabled: false,
 +  libraryRecentShelfHiddenAt: {},
  
    metadataSeriesCollapsed: false,
    metadataOthersCollapsed: false,
 diff --git a/apps/readest-app/src/types/settings.ts b/apps/readest-app/src/types/settings.ts
-index 89394163..432f65a0 100644
+index 7ab645f58..08894d0e2 100644
 --- a/apps/readest-app/src/types/settings.ts
 +++ b/apps/readest-app/src/types/settings.ts
-@@ -369,6 +369,12 @@ export interface SystemSettings {
-   libraryColumns: number;
+@@ -482,6 +482,12 @@ export interface SystemSettings {
+   libraryHideCovers: boolean;
    /** Show the recently-read carousel at the top of the library (issue #3797). */
    libraryRecentShelfEnabled: boolean;
 +  /**
@@ -530,10 +574,10 @@ index 89394163..432f65a0 100644
     * Library page background texture, configured independently from the reader
     * background (issue #4743). When any of these is undefined the library
 diff --git a/apps/readest-app/src/utils/access.ts b/apps/readest-app/src/utils/access.ts
-index 5b69e2ad..fd1a24d1 100644
+index 6674406c9..0968141ae 100644
 --- a/apps/readest-app/src/utils/access.ts
 +++ b/apps/readest-app/src/utils/access.ts
-@@ -65,7 +65,7 @@ export const isCloudSyncInPlan = (plan: UserPlan): boolean =>
+@@ -66,7 +66,7 @@ export const isCloudSyncInPlan = (plan: UserPlan, customizationPurchased: boolea
   * Every gate goes through {@link isCloudSyncAllowed}, so this flag is the
   * whole toggle.
   */

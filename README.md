@@ -50,7 +50,7 @@ steps are below and in [`tooling/README.md`](tooling/README.md).
 
 ### 2. Download a prebuilt release
 Grab the files from the [**Releases**](../../releases) page:
-- **Windows** — `readest.exe` (portable; SmartScreen → More info → Run anyway).
+- **Windows** — `Readest-GMod.exe` (portable; SmartScreen → More info → Run anyway).
 - **Android** — `Readest-GMod.apk` (sideload; allow install from unknown sources).
 
 > ⚠️ **Only use releases you trust.** A prebuilt binary is built by *someone* — if
