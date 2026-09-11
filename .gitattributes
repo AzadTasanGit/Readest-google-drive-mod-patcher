@@ -1,0 +1,4 @@
+# The mod overlay must reach `git apply` byte-for-byte: Git for Windows' default
+# core.autocrlf=true would check it out with CRLF line endings, and a CRLF patch
+# no longer matches Readest's LF sources ("patch does not apply").
+*.patch -text
